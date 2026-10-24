@@ -1,7 +1,12 @@
-from Practice1_SubstitutionCriptoanalysis.measure import chi_squared, ENGLISH_FREQUENCIES, SPANISH_FREQUENCIES
+import os
+import random
+from Practice1_SubstitutionCriptoanalysis.break_caesar import chi_squared, ENGLISH_FREQUENCIES, SPANISH_FREQUENCIES
+from columnar import encrypt
+
+ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+CARPETA = os.path.dirname(os.path.abspath(__file__))
 
 def index_of_coincidence(text: str) -> float:
-    ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     text = text.upper()
 
     letras = ""
@@ -22,6 +27,7 @@ def index_of_coincidence(text: str) -> float:
     # Denominador: todas las parejas posibles
     return suma / (n * (n - 1))
 
+UMBRAL = 2.97
 
 def classify(ciphertext: str, language: str = "en") -> str:
     """Return "transposition" or "substitution"."""
@@ -98,9 +104,34 @@ def elegir_umbral(muestras):
     return mejor_umbral
  
  
+def experimento_ic(texto):
+    """B1: para cada largo, calcula el IC de 200 trozos de inglés y cuenta
+    cuántos quedan más cerca del inglés que del azar."""
+    ic_ingles = 0.0
+    for letra in ENGLISH_FREQUENCIES:
+        p = ENGLISH_FREQUENCIES[letra] / 100
+        ic_ingles += p * p
+    ic_azar = 1 / 26
+    mitad = (ic_azar + ic_ingles) / 2
+    print(f"IC azar = {ic_azar:.4f}, IC inglés = {ic_ingles:.4f}, punto medio = {mitad:.4f}")
+    print("Largo | IC mínimo | IC medio | IC máximo | trozos por encima del punto medio")
+    for largo in [10, 15, 25, 50, 100, 200, 400]:
+        valores = []
+        for _ in range(200):
+            inicio = random.randint(0, len(texto) - largo)
+            valores.append(index_of_coincidence(texto[inicio:inicio + largo]))
+        por_encima = 0
+        for v in valores:
+            if v > mitad:
+                por_encima += 1
+        media = sum(valores) / len(valores)
+        print(f"{largo:5} | {min(valores):9.4f} | {media:8.4f} | {max(valores):9.4f} | {por_encima / 2:.0f}%")
+    print()
+
+
 if __name__ == "__main__":
-    with open("referencia.txt", encoding="utf-8") as f:
-        ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    random.seed(1)
+    with open(os.path.join(CARPETA, "referencia.txt"), encoding="utf-8") as f:
         texto = ""
         for c in f.read().upper():
             if c in ALPHABET:
@@ -110,6 +141,9 @@ if __name__ == "__main__":
     if len(texto) < 700:
         raise ValueError("El texto de referencia necesita al menos 700 letras")
  
+    print()
+    experimento_ic(texto)
+
     largos = [60, 120, 250, 400]
     errores_por_padding = {}
  
