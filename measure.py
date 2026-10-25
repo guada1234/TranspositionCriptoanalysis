@@ -125,7 +125,7 @@ def experimento_ic(texto):
             if v > mitad:
                 por_encima += 1
         media = sum(valores) / len(valores)
-        print(f"{largo:5} | {min(valores):9.4f} | {media:8.4f} | {max(valores):9.4f} | {por_encima / 2:.0f}%")
+        print(f"{largo:5} | {min(valores):9.4f} | {media:8.4f} | {max(valores):9.4f} | {por_encima / 2:.1f}%")
     print()
 
 
